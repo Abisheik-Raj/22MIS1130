@@ -140,3 +140,116 @@ GET /api/v1/notifications/unread-count
 ```
 
 ---
+
+# Stage 2
+
+## Database Choice
+
+MongoDB
+
+---
+
+## Notification Collection Schema
+
+```json
+{
+  "_id": "ObjectId",
+  "title": "string",
+  "message": "string",
+  "type": "string",
+  "isRead": false,
+  "userId": "string",
+  "createdAt": "timestamp"
+}
+```
+
+---
+
+## Problems with Increasing Data Volume
+
+- Slower notification retrieval
+- Increased database load
+- Delayed real-time notification delivery
+- High storage usage
+- Large unread notification calculations
+
+---
+
+## Solutions
+
+- Add indexes on userId and createdAt
+- Use pagination while fetching notifications
+- Archive older notifications
+- Cache unread notification counts
+- Use WebSockets for real-time delivery
+- Use database sharding for scaling
+
+---
+
+## Queries
+
+### Create Notification
+
+```js
+db.notifications.insertOne({
+  title: "n1",
+  message: "message1",
+  type: "event",
+  isRead: false,
+  userId: "u1",
+  createdAt: new Date(),
+});
+```
+
+---
+
+### Get Notifications
+
+```js
+db.notifications
+  .find({
+    userId: "u1",
+  })
+  .sort({
+    createdAt: -1,
+  })
+  .limit(10);
+```
+
+---
+
+### Mark Notification as Read
+
+```js
+db.notifications.updateOne(
+  {
+    _id: ObjectId("n1"),
+  },
+  {
+    $set: {
+      isRead: true,
+    },
+  },
+);
+```
+
+---
+
+### Delete Notification
+
+```js
+db.notifications.deleteOne({
+  _id: ObjectId("n1"),
+});
+```
+
+---
+
+### Get Unread Notification Count
+
+```js
+db.notifications.countDocuments({
+  userId: "u1",
+  isRead: false,
+});
+```
