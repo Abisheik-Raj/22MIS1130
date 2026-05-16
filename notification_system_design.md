@@ -473,3 +473,72 @@ Disadvantages:
 - Use pagination while fetching notifications
 - Use lazy loading in frontend
 - Add indexes on frequently queried fields
+
+# Stage 5
+
+## Problems in Current Implementation
+
+- Notifications are processed one by one
+- Sending emails to all students will take time
+- If email sending fails midway, some students may miss notifications
+- Database operations and email sending are dependent on each other
+
+---
+
+## Better Approach
+
+Use queues and background workers.
+
+Flow:
+
+1. Save notification in database
+2. Add email jobs to queue
+3. Send in-app notification separately
+
+This reduces server load and improves speed.
+
+---
+
+## Should DB Save and Email Sending Happen Together?
+
+No.
+
+Notifications should first be saved in the database.  
+Email sending can happen separately in the background.
+
+This ensures notifications are not lost even if email delivery fails.
+
+---
+
+## Handling Failed Emails
+
+If email sending fails:
+
+- Store failed jobs in retry queue
+- Retry sending after some time
+- Keep logs for failed emails
+
+---
+
+## Revised Pseudocode
+
+```python
+function notify_all(student_ids, message):
+
+    for student_id in student_ids:
+
+        save_to_db(student_id, message)
+
+        add_to_email_queue(student_id, message)
+
+        push_to_app(student_id, message)
+```
+
+---
+
+## Advantages
+
+- Faster processing
+- Better reliability
+- Easier retry handling
+- Reduced server load
