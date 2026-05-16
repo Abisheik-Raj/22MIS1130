@@ -542,3 +542,154 @@ function notify_all(student_ids, message):
 - Better reliability
 - Easier retry handling
 - Reduced server load
+
+# Stage 6
+
+## Approach
+
+Priority notifications are selected based on:
+
+- notification type
+- recency
+
+Priority order:
+
+1. Placement
+2. Result
+3. Event
+
+More recent notifications get higher priority within the same type.
+
+---
+
+## Priority Calculation
+
+Weights:
+
+- Placement → 3
+- Result → 2
+- Event → 1
+
+Final score can be calculated using:
+
+- type weight
+- latest timestamp
+
+---
+
+## Maintaining Top Notifications
+
+Instead of sorting all notifications repeatedly:
+
+- maintain a fixed-size priority queue
+- keep only top 10 notifications in memory
+
+When a new notification arrives:
+
+- compare priority score
+- replace lower priority notification if needed
+
+This reduces sorting overhead.
+
+---
+
+## Example Logic
+
+```javascript
+const priorityMap = {
+  Placement: 3,
+  Result: 2,
+  Event: 1,
+};
+
+function getScore(notification) {
+  return priorityMap[notification.Type] || 0;
+}
+
+function getTopNotifications(notifications) {
+  return notifications
+    .sort((a, b) => {
+      const scoreDiff = getScore(b) - getScore(a);
+
+      if (scoreDiff !== 0) {
+        return scoreDiff;
+      }
+
+      return new Date(b.Timestamp) - new Date(a.Timestamp);
+    })
+    .slice(0, 10);
+}
+```
+
+---
+
+## Advantages
+
+- Faster retrieval
+- Easy to maintain
+- Handles continuous incoming notifications efficiently
+
+# Stage 7
+
+## Frontend
+
+A responsive React application will be developed using Material UI.
+
+The application will contain:
+
+- Notifications page
+- Priority notifications page
+- Notification type filters
+
+---
+
+## Features
+
+- Fetch notifications from API
+- Display top priority notifications
+- Pagination support
+- Read and unread notification handling
+- Mobile and desktop responsive design
+
+---
+
+## Filters
+
+Supported filters:
+
+- Event
+- Result
+- Placement
+
+Query parameters:
+
+- limit
+- page
+- notification_type
+
+---
+
+## API
+
+```http
+http://4.224.186.213/evaluation-service/notifications
+```
+
+---
+
+## Logging
+
+Logging middleware will be used for:
+
+- API requests
+- frontend errors
+- page actions
+
+---
+
+## Deliverables
+
+- React frontend
+- responsive UI
+- screenshots
+- functionality video
