@@ -347,3 +347,129 @@ FROM notifications
 WHERE notificationType = 'Placement'
 AND createdAt >= NOW() - INTERVAL 7 DAY;
 ```
+
+# Stage 4
+
+## Solution
+
+Fetching notifications from the database on every page load increases database load and slows down the application as the number of users grows. To improve performance, caching, pagination and real-time updates can be used.
+
+---
+
+## Improvements
+
+### 1. Redis Caching
+
+Recent notifications and unread counts can be stored in Redis.
+
+Flow:
+
+- Check cache first
+- If cache data exists, return it
+- Otherwise fetch from database and update cache
+
+Advantages:
+
+- Faster response time
+- Fewer database queries
+
+Disadvantages:
+
+- Extra setup required
+- Cache data must be updated properly
+
+---
+
+### 2. Pagination
+
+Instead of loading all notifications, fetch smaller batches.
+
+Example:
+
+```http
+GET /api/v1/notifications?page=1&limit=20
+```
+
+Advantages:
+
+- Faster queries
+- Reduced server load
+
+Disadvantages:
+
+- Multiple requests needed for more data
+
+---
+
+### 3. WebSockets
+
+Use WebSockets to send notifications instantly to connected users instead of repeatedly calling APIs.
+
+Advantages:
+
+- Real-time updates
+- Reduces repeated API requests
+
+Disadvantages:
+
+- More complex than normal APIs
+- More server memory usage
+
+---
+
+### 4. Lazy Loading
+
+Load notifications only when the notifications section is opened.
+
+Advantages:
+
+- Faster initial page load
+- Fewer unnecessary API calls
+
+Disadvantages:
+
+- Small delay when opening notifications
+
+---
+
+### 5. Database Indexing
+
+Indexes can be added on:
+
+- userId
+- isRead
+- createdAt
+
+Advantages:
+
+- Faster search and sorting
+
+Disadvantages:
+
+- Extra storage required
+- Slower insert operations
+
+---
+
+### 6. Archiving Old Notifications
+
+Old notifications can be moved to a separate archive collection/table.
+
+Advantages:
+
+- Faster access to recent notifications
+- Reduced active database size
+
+Disadvantages:
+
+- Archived notifications take longer to access
+
+---
+
+## Final Approach
+
+- Use Redis for caching
+- Use WebSockets for real-time updates
+- Use pagination while fetching notifications
+- Use lazy loading in frontend
+- Add indexes on frequently queried fields
