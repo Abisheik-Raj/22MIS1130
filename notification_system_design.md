@@ -253,3 +253,97 @@ db.notifications.countDocuments({
   isRead: false,
 });
 ```
+
+# Stage 3
+
+## Existing Query
+
+```sql
+SELECT * FROM notifications
+WHERE studentID = 1042 AND isRead = false
+ORDER BY createdAt ASC;
+```
+
+---
+
+## Is the Query Accurate?
+
+Yes, the query correctly fetches unread notifications of a student ordered by creation time.
+
+---
+
+## Why is the Query Slow?
+
+- The notifications table contains millions of records
+- Full table scans may occur without indexes
+- Sorting using ORDER BY on large datasets is expensive
+- SELECT \* fetches unnecessary columns
+- Increasing notification volume increases query execution time
+
+---
+
+## Improvements
+
+Use indexing on frequently searched columns.
+
+Optimized query:
+
+```sql
+SELECT id, title, message, createdAt
+FROM notifications
+WHERE studentID = 1042
+AND isRead = false
+ORDER BY createdAt DESC
+LIMIT 20;
+```
+
+---
+
+## Recommended Index
+
+```sql
+CREATE INDEX idx_notifications_student_read_created
+ON notifications(studentID, isRead, createdAt);
+```
+
+---
+
+## Likely Computation Cost
+
+Without indexes:
+
+- Time Complexity: O(n)
+
+With indexes:
+
+- Time Complexity: O(log n)
+
+---
+
+## Should Indexes be Added on Every Column?
+
+No.
+
+Adding indexes on every column is inefficient because:
+
+- Indexes increase storage usage
+- Insert and update operations become slower
+- Many indexes may never be used
+- Database maintenance overhead increases
+
+Indexes should only be added on:
+
+- Frequently searched columns
+- Sorting columns
+- Join columns
+
+---
+
+## Query to Find Students Who Received Placement Notifications in Last 7 Days
+
+```sql
+SELECT DISTINCT studentID
+FROM notifications
+WHERE notificationType = 'Placement'
+AND createdAt >= NOW() - INTERVAL 7 DAY;
+```
